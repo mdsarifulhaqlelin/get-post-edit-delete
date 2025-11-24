@@ -1,5 +1,6 @@
 // screens/users_screen.dart
 import 'package:flutter/material.dart';
+import 'package:project/screens/user_details_screen.dart';
 import '../models/user_models.dart';
 import '../services/api_service.dart';
 import 'home_screen.dart';
@@ -176,13 +177,23 @@ class _UsersScreenState extends State<UsersScreen> {
   }
 
   Widget _buildUsersList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _users.length,
-      itemBuilder: (context, index) {
-        final user = _users[index];
-        return Card(
+  return ListView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    itemCount: _users.length,
+    itemBuilder: (context, index) {
+      final user = _users[index];
+
+      return InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserDetailsScreen(user: user),
+            ),
+          );
+        },
+        child: Card(
           margin: const EdgeInsets.only(bottom: 15),
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -254,22 +265,24 @@ class _UsersScreenState extends State<UsersScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text('📧 ${user.email}', style: const TextStyle(fontSize: 13)),
-                      Text('📱 ${user.phone}', style: const TextStyle(fontSize: 13)),
-                      Text('🏢 ${user.company.name}', style: const TextStyle(fontSize: 13)),
-                      Text('🎂 ${user.birthDate} (${user.age} years)', style: const TextStyle(fontSize: 13)),
-                      Text('📍 ${user.address.city}, ${user.address.state}', style: const TextStyle(fontSize: 13)),
-                      Text('🩸 ${user.bloodGroup}', style: const TextStyle(fontSize: 13)),
+                      Text('📧 ${user.email}'),
+                      Text('📱 ${user.phone}'),
+                      Text('🏢 ${user.company.name}'),
+                      Text('🎂 ${user.birthDate} (${user.age} years)'),
+                      Text('📍 ${user.address.city}, ${user.address.state}'),
+                      Text('🩸 ${user.bloodGroup}'),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
 
   Widget _buildPagination() {
     return Row(

@@ -67,4 +67,24 @@ class ApiService {
       throw Exception('Failed to load current user: ${response.body}');
     }
   }
+  
+  Future<User> getUserById(int userId) async {
+    if (_authToken == null) {
+      throw Exception('No authentication token available');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId'),
+      headers: {'Authorization': 'Bearer $_authToken'},
+    );
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      throw Exception('User not found');
+    } else {
+      throw Exception('Failed to fetch user: ${response.body}');
+
+    }
+  }
+
 }
