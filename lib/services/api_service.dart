@@ -7,12 +7,12 @@ import '../models/user_models.dart';
 class ApiService {
   static const String baseUrl = 'https://dummyjson.com';
   static const int limit = 30;
-  
+
   String? _authToken;
 
   // কন্সট্রাক্টরে টোকেন নেওয়ার অপশন
   ApiService({String? token}) : _authToken = token;
-  
+
   // টোকেন সেট করার মেথড
   void setToken(String token) {
     _authToken = token;
@@ -37,9 +37,7 @@ class ApiService {
   Future<Map<String, dynamic>> getUsers(int skip) async {
     final response = await http.get(
       Uri.parse('$baseUrl/users?limit=$limit&skip=$skip'),
-      headers: {
-        'Authorization': 'Bearer $_authToken',
-      },
+      headers: {'Authorization': 'Bearer $_authToken'},
     );
 
     if (response.statusCode == 200) {
@@ -58,5 +56,15 @@ class ApiService {
     }
   }
 
-  
+  Future<User> getCurrentUser() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/me'),
+      headers: {'Authorization': 'Bearer $_authToken'},
+    );
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load current user: ${response.body}');
+    }
+  }
 }
