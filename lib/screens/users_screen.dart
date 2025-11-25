@@ -25,7 +25,7 @@ class _UsersScreenState extends State<UsersScreen> {
   TextEditingController _searchController = TextEditingController();
   List<String> _hairColors = []; // Hair colors dropdown এর জন্য
   String? _selectedHairColor; // Selected hair color for filtering
-  bool _showMinimalInfo = false; // Minimal info toggle
+  final bool _showMinimalInfo = false; // Minimal info toggle
 
   Future<void> _fetchHairColors() async {
     setState(() {
@@ -244,7 +244,7 @@ class _UsersScreenState extends State<UsersScreen> {
 
                       // 🎨 FILTER DROPDOWN
                       DropdownButtonFormField<String>(
-                        value: _selectedHairColor,
+                        initialValue: _selectedHairColor,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
