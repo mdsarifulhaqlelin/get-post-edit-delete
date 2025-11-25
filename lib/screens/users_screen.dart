@@ -26,11 +26,19 @@ class _UsersScreenState extends State<UsersScreen> {
   List<String> _hairColors = []; // Hair colors dropdown এর জন্য
   String? _selectedHairColor; // Selected hair color for filtering
 
-Future<void> _fetchHairColors() async {
-  setState(() {
-    _hairColors = ['Black', 'Brown', 'Blonde', 'Red', 'Gray', 'Auburn', 'Chestnut'];
-  });
-}
+  Future<void> _fetchHairColors() async {
+    setState(() {
+      _hairColors = [
+        'Black',
+        'Brown',
+        'Blonde',
+        'Red',
+        'Gray',
+        'Auburn',
+        'Chestnut',
+      ];
+    });
+  }
 
   @override
   void initState() {
@@ -45,7 +53,6 @@ Future<void> _fetchHairColors() async {
     setState(() {
       _isLoadingUsers = true;
       _usersError = null;
-
     });
 
     try {
@@ -141,7 +148,10 @@ Future<void> _fetchHairColors() async {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Color.fromARGB(255, 255, 0, 0)),
+            icon: const Icon(
+              Icons.logout,
+              color: Color.fromARGB(255, 255, 0, 0),
+            ),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -191,6 +201,7 @@ Future<void> _fetchHairColors() async {
                         ],
                       ),
                       const SizedBox(height: 15),
+                      
 
                       // 🔍 SEARCH FIELD
                       TextField(
@@ -209,6 +220,27 @@ Future<void> _fetchHairColors() async {
 
                       const SizedBox(height: 15),
 
+                      // CLEAR FILTERS BUTTON,
+                      if (_searchController.text.isNotEmpty ||
+                          _selectedHairColor != null)
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _selectedHairColor = null;
+                            });
+                            _fetchUsers(skip: 0);
+                          },
+                          icon: const Icon(Icons.clear_all),
+                          label: const Text('Clear Filters'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
+
                       // 🎨 FILTER DROPDOWN
                       DropdownButtonFormField<String>(
                         value: _selectedHairColor,
@@ -217,19 +249,19 @@ Future<void> _fetchHairColors() async {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           labelText: "Filter by Hair Color",
-                          suffixIcon: _selectedHairColor !=null
+                          suffixIcon: _selectedHairColor != null
                               ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedHairColor = null;
-                                    _fetchUsers(skip: _currentSkip);
-                                  });
-                                },
-                              )
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedHairColor = null;
+                                      _fetchUsers(skip: _currentSkip);
+                                    });
+                                  },
+                                )
                               : null,
                         ),
-                        items: _hairColors.map((color){
+                        items: _hairColors.map((color) {
                           return DropdownMenuItem(
                             value: color,
                             child: Text(color),
@@ -244,8 +276,62 @@ Future<void> _fetchHairColors() async {
                           }
                         },
                       ),
+                      const SizedBox(height: 15),
+
+                      // 📊 SORT DROPDOWN
+                      DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          labelText: "Sort By",
+                          prefixIcon: const Icon(Icons.sort),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: "name",
+                            child: Text("Name (A-Z)"),
+                          ),
+                          DropdownMenuItem(value: "age", child: Text("Age")),
+                          DropdownMenuItem(
+                            value: "company",
+                            child: Text("Company"),
+                          ),
+                        ],
+                        onChanged: (sortBy) {
+                          setState(() {
+                            // সর্টিং লজিক অ্যাড করুন
+                            if (sortBy == "name") {
+                              _users.sort(
+                                (a, b) => "${a.firstName} ${a.lastName}"
+                                    .compareTo("${b.firstName} ${b.lastName}"),
+                              );
+                            } else if (sortBy == "age") {
+                              _users.sort((a, b) => a.age.compareTo(b.age));
+                            }
+                          });
+                        },
+                      ),
 
                       const SizedBox(height: 20),
+
+                      
+Card(
+  color: Colors.blue[50],
+  child: Padding(
+    padding: const EdgeInsets.all(15),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildStatItem('Total', '$_totalUsers', Icons.people),
+        _buildStatItem('Avg Age', '${_users.isEmpty ? 0 : (_users.map((u) => u.age).reduce((a, b) => a + b) / _users.length).toStringAsFixed(1)}', Icons.calculate),
+        _buildStatItem('Active', '${_users.where((u) => u.role.toLowerCase() != 'inactive').length}', Icons.check_circle),
+      ],
+    ),
+  ),
+),
+
+const SizedBox(height: 20),
 
                       Text(
                         'Showing ${_currentSkip + 1}-${_currentSkip + (_users.isEmpty ? 0 : _users.length)} of $_totalUsers users',
@@ -421,4 +507,14 @@ Future<void> _fetchHairColors() async {
       ],
     );
   }
+  Widget _buildStatItem(String label, String value, IconData icon) {
+  return Column(
+    children: [
+      Icon(icon, color: Colors.blue, size: 30),
+      const SizedBox(height: 5),
+      Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+    ],
+  );
+}
 }
