@@ -25,6 +25,7 @@ class _UsersScreenState extends State<UsersScreen> {
   TextEditingController _searchController = TextEditingController();
   List<String> _hairColors = []; // Hair colors dropdown এর জন্য
   String? _selectedHairColor; // Selected hair color for filtering
+  bool _showMinimalInfo = false; // Minimal info toggle
 
   Future<void> _fetchHairColors() async {
     setState(() {
@@ -124,6 +125,7 @@ class _UsersScreenState extends State<UsersScreen> {
         value: color,
         limit: _limit,
         skip: 0,
+        select: _showMinimalInfo ? "firstName,lastName,image" : "firstName,lastName,email,age,phone,role,image",
       );
 
       setState(() {
@@ -201,7 +203,6 @@ class _UsersScreenState extends State<UsersScreen> {
                         ],
                       ),
                       const SizedBox(height: 15),
-                      
 
                       // 🔍 SEARCH FIELD
                       TextField(
@@ -315,23 +316,34 @@ class _UsersScreenState extends State<UsersScreen> {
 
                       const SizedBox(height: 20),
 
-                      
-Card(
-  color: Colors.blue[50],
-  child: Padding(
-    padding: const EdgeInsets.all(15),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildStatItem('Total', '$_totalUsers', Icons.people),
-        _buildStatItem('Avg Age', '${_users.isEmpty ? 0 : (_users.map((u) => u.age).reduce((a, b) => a + b) / _users.length).toStringAsFixed(1)}', Icons.calculate),
-        _buildStatItem('Active', '${_users.where((u) => u.role.toLowerCase() != 'inactive').length}', Icons.check_circle),
-      ],
-    ),
-  ),
-),
+                      Card(
+                        color: Colors.blue[50],
+                        child: Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStatItem(
+                                'Total',
+                                '$_totalUsers',
+                                Icons.people,
+                              ),
+                              _buildStatItem(
+                                'Avg Age',
+                                '${_users.isEmpty ? 0 : (_users.map((u) => u.age).reduce((a, b) => a + b) / _users.length).toStringAsFixed(1)}',
+                                Icons.calculate,
+                              ),
+                              _buildStatItem(
+                                'Active',
+                                '${_users.where((u) => u.role.toLowerCase() != 'inactive').length}',
+                                Icons.check_circle,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
 
-const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       Text(
                         'Showing ${_currentSkip + 1}-${_currentSkip + (_users.isEmpty ? 0 : _users.length)} of $_totalUsers users',
@@ -466,12 +478,16 @@ const SizedBox(height: 20),
                           ],
                         ),
                         const SizedBox(height: 8),
+                        if (_showMinimalInfo) ...[
+                          Text('📧 ${user.email}'),
+                        ] else ...[
                         Text('📧 ${user.email}'),
                         Text('📱 ${user.phone}'),
                         Text('🏢 ${user.company.name}'),
                         Text('🎂 ${user.birthDate} (${user.age} years)'),
                         Text('📍 ${user.address.city}, ${user.address.state}'),
                         Text('🩸 ${user.bloodGroup}'),
+                        ],
                       ],
                     ),
                   ),
@@ -507,14 +523,18 @@ const SizedBox(height: 20),
       ],
     );
   }
+
   Widget _buildStatItem(String label, String value, IconData icon) {
-  return Column(
-    children: [
-      Icon(icon, color: Colors.blue, size: 30),
-      const SizedBox(height: 5),
-      Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-      Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-    ],
-  );
-}
+    return Column(
+      children: [
+        Icon(icon, color: Colors.blue, size: 30),
+        const SizedBox(height: 5),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      ],
+    );
+  }
 }

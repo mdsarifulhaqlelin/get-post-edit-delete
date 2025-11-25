@@ -109,44 +109,49 @@ class ApiService {
       throw Exception('Failed to search users: ${response.body}');
     }
   }
-// filterUsers
-Future<Map<String, dynamic>> filterUsers({
-  required String key,
-  required String value,
-  int limit = 30,
-  int skip = 0,
-  String? hairColor,
-}) async {
-  // Base filter URL
-  String url =
-      '$baseUrl/users/filter?key=$key&value=$value&limit=$limit&skip=$skip';
 
-  // Add hair color filter (optional)
-  if (hairColor != null && hairColor.isNotEmpty) {
-    url += '&hair.color=$hairColor';
+  // filterUsers
+  Future<Map<String, dynamic>> filterUsers({
+    required String key,
+    required String value,
+    int limit = 30,
+    int skip = 0,
+    String? hairColor,
+    String? select,
+  }) async {
+    // Base filter URL
+    String url =
+        '$baseUrl/users/filter?key=$key&value=$value&limit=$limit&skip=$skip';
+
+    // Add hair color filter (optional)
+    if (hairColor != null && hairColor.isNotEmpty) {
+      url += '&hair.color=$hairColor';
+    }
+
+    if (select != null && select.isNotEmpty) {
+      url += '&select=$select';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $_authToken'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List<User> users = (data['users'] as List)
+          .map((userJson) => User.fromJson(userJson))
+          .toList();
+
+      return {
+        'users': users,
+        'total': data['total'],
+        'skip': data['skip'],
+        'limit': data['limit'],
+      };
+    } else {
+      throw Exception('Failed to filter users: ${response.body}');
+    }
   }
-
-  final response = await http.get(
-    Uri.parse(url),
-    headers: {'Authorization': 'Bearer $_authToken'},
-  );
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-
-    List<User> users = (data['users'] as List)
-        .map((userJson) => User.fromJson(userJson))
-        .toList();
-
-    return {
-      'users': users,
-      'total': data['total'],
-      'skip': data['skip'],
-      'limit': data['limit'],
-    };
-  } else {
-    throw Exception('Failed to filter users: ${response.body}');
-  }
-}
- 
 }
