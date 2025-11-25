@@ -7,7 +7,7 @@ import 'home_screen.dart';
 
 class UsersScreen extends StatefulWidget {
   final String token;
-  
+
   const UsersScreen({super.key, required this.token});
 
   @override
@@ -22,18 +22,30 @@ class _UsersScreenState extends State<UsersScreen> {
   int _currentSkip = 0;
   int _totalUsers = 0;
   final int _limit = 30;
+  TextEditingController _searchController = TextEditingController();
+  List<String> _hairColors = []; // Hair colors dropdown এর জন্য
+  String? _selectedHairColor; // Selected hair color for filtering
+
+Future<void> _fetchHairColors() async {
+  setState(() {
+    _hairColors = ['Black', 'Brown', 'Blonde', 'Red', 'Gray', 'Auburn', 'Chestnut'];
+  });
+}
 
   @override
   void initState() {
     super.initState();
     _apiService = ApiService()..setToken(widget.token);
+    _fetchHairColors();
     _fetchUsers();
+    _searchController = TextEditingController();
   }
 
   Future<void> _fetchUsers({int skip = 0}) async {
     setState(() {
       _isLoadingUsers = true;
       _usersError = null;
+
     });
 
     try {
@@ -75,6 +87,52 @@ class _UsersScreenState extends State<UsersScreen> {
     }
   }
 
+  void _searchUsers(String query) {
+    if (query.isEmpty) {
+      _fetchUsers(skip: _currentSkip);
+      return;
+    }
+
+    setState(() {
+      _users = _users.where((user) {
+        final name = "${user.firstName} ${user.lastName}".toLowerCase();
+        final email = user.email.toLowerCase();
+        final phone = user.phone.toLowerCase();
+
+        return name.contains(query.toLowerCase()) ||
+            email.contains(query.toLowerCase()) ||
+            phone.contains(query.toLowerCase());
+      }).toList();
+    });
+  }
+
+  void _filterByHairColor(String color) async {
+    setState(() {
+      _isLoadingUsers = true;
+    });
+
+    try {
+      final data = await _apiService.filterUsers(
+        key: "hair.color",
+        value: color,
+        limit: _limit,
+        skip: 0,
+      );
+
+      setState(() {
+        _users = data['users'];
+        _totalUsers = data['total'];
+        _currentSkip = 0;
+        _isLoadingUsers = false;
+      });
+    } catch (e) {
+      setState(() {
+        _usersError = e.toString();
+        _isLoadingUsers = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,7 +141,7 @@ class _UsersScreenState extends State<UsersScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout, color: Color.fromARGB(255, 255, 0, 0)),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -133,11 +191,69 @@ class _UsersScreenState extends State<UsersScreen> {
                         ],
                       ),
                       const SizedBox(height: 15),
+
+                      // 🔍 SEARCH FIELD
+                      TextField(
+                        controller: _searchController,
+                        onChanged: (value) {
+                          _searchUsers(value);
+                        },
+                        decoration: InputDecoration(
+                          hintText: "Search users...",
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      // 🎨 FILTER DROPDOWN
+                      DropdownButtonFormField<String>(
+                        value: _selectedHairColor,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          labelText: "Filter by Hair Color",
+                          suffixIcon: _selectedHairColor !=null
+                              ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedHairColor = null;
+                                    _fetchUsers(skip: _currentSkip);
+                                  });
+                                },
+                              )
+                              : null,
+                        ),
+                        items: _hairColors.map((color){
+                          return DropdownMenuItem(
+                            value: color,
+                            child: Text(color),
+                          );
+                        }).toList(),
+                        onChanged: (color) {
+                          if (color != null) {
+                            setState(() {
+                              _selectedHairColor = color;
+                            });
+                            _filterByHairColor(color);
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 20),
+
                       Text(
                         'Showing ${_currentSkip + 1}-${_currentSkip + (_users.isEmpty ? 0 : _users.length)} of $_totalUsers users',
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
+
                       const SizedBox(height: 20),
+
                       if (_isLoadingUsers)
                         const Center(child: CircularProgressIndicator())
                       else if (_usersError != null)
@@ -146,7 +262,9 @@ class _UsersScreenState extends State<UsersScreen> {
                         const Center(child: Text('No users found'))
                       else
                         _buildUsersList(),
+
                       const SizedBox(height: 20),
+
                       _buildPagination(),
                     ],
                   ),
@@ -168,121 +286,117 @@ class _UsersScreenState extends State<UsersScreen> {
       ),
       child: Text(
         '❌ Error: $_usersError',
-        style: TextStyle(
-          color: Colors.red[900],
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: Colors.red[900], fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _buildUsersList() {
-  return ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: _users.length,
-    itemBuilder: (context, index) {
-      final user = _users[index];
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _users.length,
+      itemBuilder: (context, index) {
+        final user = _users[index];
 
-      return InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => UserDetailsScreen(user: user),
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserDetailsScreen(user: user),
+              ),
+            );
+          },
+          child: Card(
+            margin: const EdgeInsets.only(bottom: 15),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-          );
-        },
-        child: Card(
-          margin: const EdgeInsets.only(bottom: 15),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(15),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipOval(
-                  child: Image.network(
-                    user.image,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: Text(
-                            user.firstName[0].toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${user.firstName} ${user.lastName}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getRoleColor(user.role),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
+            child: Padding(
+              padding: const EdgeInsets.all(15),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipOval(
+                    child: Image.network(
+                      user.image,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 50,
+                          height: 50,
+                          color: Colors.grey[300],
+                          child: Center(
                             child: Text(
-                              user.role.toUpperCase(),
+                              user.firstName[0].toUpperCase(),
                               style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.grey,
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text('📧 ${user.email}'),
-                      Text('📱 ${user.phone}'),
-                      Text('🏢 ${user.company.name}'),
-                      Text('🎂 ${user.birthDate} (${user.age} years)'),
-                      Text('📍 ${user.address.city}, ${user.address.state}'),
-                      Text('🩸 ${user.bloodGroup}'),
-                    ],
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${user.firstName} ${user.lastName}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _getRoleColor(user.role),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                user.role.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('📧 ${user.email}'),
+                        Text('📱 ${user.phone}'),
+                        Text('🏢 ${user.company.name}'),
+                        Text('🎂 ${user.birthDate} (${user.age} years)'),
+                        Text('📍 ${user.address.city}, ${user.address.state}'),
+                        Text('🩸 ${user.bloodGroup}'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 
   Widget _buildPagination() {
     return Row(

@@ -67,7 +67,7 @@ class ApiService {
       throw Exception('Failed to load current user: ${response.body}');
     }
   }
-  
+
   Future<User> getUserById(int userId) async {
     if (_authToken == null) {
       throw Exception('No authentication token available');
@@ -83,8 +83,70 @@ class ApiService {
       throw Exception('User not found');
     } else {
       throw Exception('Failed to fetch user: ${response.body}');
-
     }
   }
 
+  Future<Map<String, dynamic>> searchUsers(String query) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/search?q=$query'),
+      headers: {'Authorization': 'Bearer $_authToken'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List<User> users = (data['users'] as List)
+          .map((userJson) => User.fromJson(userJson))
+          .toList();
+
+      return {
+        'users': users,
+        'total': data['total'],
+        'skip': data['skip'],
+        'limit': data['limit'],
+      };
+    } else {
+      throw Exception('Failed to search users: ${response.body}');
+    }
+  }
+// filterUsers
+Future<Map<String, dynamic>> filterUsers({
+  required String key,
+  required String value,
+  int limit = 30,
+  int skip = 0,
+  String? hairColor,
+}) async {
+  // Base filter URL
+  String url =
+      '$baseUrl/users/filter?key=$key&value=$value&limit=$limit&skip=$skip';
+
+  // Add hair color filter (optional)
+  if (hairColor != null && hairColor.isNotEmpty) {
+    url += '&hair.color=$hairColor';
+  }
+
+  final response = await http.get(
+    Uri.parse(url),
+    headers: {'Authorization': 'Bearer $_authToken'},
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+
+    List<User> users = (data['users'] as List)
+        .map((userJson) => User.fromJson(userJson))
+        .toList();
+
+    return {
+      'users': users,   // <-- Ei line ta thik kora hoyeche
+      'total': data['total'],
+      'skip': data['skip'],
+      'limit': data['limit'],
+    };
+  } else {
+    throw Exception('Failed to filter users: ${response.body}');
+  }
+}
+ 
 }
