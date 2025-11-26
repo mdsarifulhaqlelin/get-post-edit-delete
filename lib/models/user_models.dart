@@ -37,27 +37,45 @@ class User {
     required this.role,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] ?? 0,
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      email: json['email'] ?? '',
-      phone: json['phone'] ?? '',
-      username: json['username'] ?? '',
-      birthDate: json['birthDate'] ?? '',
-      age: json['age'] ?? 0,
-      gender: json['gender'] ?? '',
-      image: json['image'] ?? '',
-      bloodGroup: json['bloodGroup'] ?? '',
-      height: (json['height'] ?? 0).toDouble(),
-      weight: (json['weight'] ?? 0).toDouble(),
-      eyeColor: json['eyeColor'] ?? '',
-      address: Address.fromJson(json['address'] ?? {}),
-      company: Company.fromJson(json['company'] ?? {}),
-      role: json['role'] ?? 'user',
-    );
-  }
+  factory User.fromJson(Map<String, dynamic> json) => User(
+        id: json['id'] ?? 0,
+        firstName: json['firstName'] ?? '',
+        lastName: json['lastName'] ?? '',
+        email: json['email'] ?? '',
+        phone: json['phone'] ?? '',
+        username: json['username'] ?? '',
+        birthDate: json['birthDate'] ?? '',
+        age: json['age'] ?? 0,
+        gender: json['gender'] ?? '',
+        image: json['image'] ?? '',
+        bloodGroup: json['bloodGroup'] ?? '',
+        height: (json['height'] ?? 0).toDouble(),
+        weight: (json['weight'] ?? 0).toDouble(),
+        eyeColor: json['eyeColor'] ?? '',
+        address: Address.fromJson(json['address'] ?? {}),
+        company: Company.fromJson(json['company'] ?? {}),
+        role: json['role'] ?? 'user',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'phone': phone,
+        'username': username,
+        'birthDate': birthDate,
+        'age': age,
+        'gender': gender,
+        'image': image,
+        'bloodGroup': bloodGroup,
+        'height': height,
+        'weight': weight,
+        'eyeColor': eyeColor,
+        'address': address.toJson(),
+        'company': company.toJson(),
+        'role': role,
+      };
 }
 
 class Address {
@@ -75,15 +93,21 @@ class Address {
     required this.country,
   });
 
-  factory Address.fromJson(Map<String, dynamic> json) {
-    return Address(
-      address: json['address'] ?? '',
-      city: json['city'] ?? '',
-      state: json['state'] ?? '',
-      postalCode: json['postalCode'] ?? '',
-      country: json['country'] ?? '',
-    );
-  }
+  factory Address.fromJson(Map<String, dynamic> json) => Address(
+        address: json['address'] ?? '',
+        city: json['city'] ?? '',
+        state: json['state'] ?? '',
+        postalCode: json['postalCode'] ?? '',
+        country: json['country'] ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'address': address,
+        'city': city,
+        'state': state,
+        'postalCode': postalCode,
+        'country': country,
+      };
 }
 
 class Company {
@@ -97,11 +121,15 @@ class Company {
     required this.department,
   });
 
-  factory Company.fromJson(Map<String, dynamic> json) {
-    return Company(
-      name: json['name'] ?? '',
-      title: json['title'] ?? '',
-      department: json['department'] ?? '',
-    );
-  }
+  factory Company.fromJson(Map<String, dynamic> json) => Company(
+        name: json['name'] ?? '',
+        title: json['title'] ?? '',
+        department: json['department'] ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'title': title,
+        'department': department,
+      };
 }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+// Screen imports
+import 'screens/signup_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -12,12 +15,27 @@ class DummyJSONApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'DummyJSON User Management',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
+        colorSchemeSeed: Colors.deepPurple,
         useMaterial3: true,
       ),
-      debugShowCheckedModeBanner: false,
-      home: const HomeScreen(),
+      // Initial route when app starts
+      initialRoute: Routes.home,
+      // All app routes defined here
+      routes: {
+        Routes.home: (context) => const HomeScreen(),
+        Routes.signup: (context) => const SignupScreen(),
+      },
     );
   }
+}
+
+/// Centralized route definitions for the app
+/// 
+/// For better architecture, consider moving this to a separate file:
+/// lib/core/routes.dart
+class Routes {
+  static const String home = '/home';
+  static const String signup = '/signup';
 }

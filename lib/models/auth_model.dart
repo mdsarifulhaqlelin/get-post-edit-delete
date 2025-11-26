@@ -9,13 +9,11 @@ class LoginRequest {
     this.expiresInMins = 30,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'username': username,
-      'password': password,
-      'expiresInMins': expiresInMins,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'username': username,
+        'password': password,
+        'expiresInMins': expiresInMins,
+      };
 }
 
 class LoginResponse {
@@ -41,17 +39,15 @@ class LoginResponse {
     required this.image,
   });
 
-  factory LoginResponse.fromJson(Map<String, dynamic> json) {
-    return LoginResponse(
-      accessToken: json['accessToken'] ?? '',
-      refreshToken: json['refreshToken'] ?? '',
-      id: json['id'] ?? 0,
-      username: json['username'] ?? '',
-      email: json['email'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      gender: json['gender'] ?? '',
-      image: json['image'] ?? '',
-    );
-  }
+  factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
+        accessToken: json['accessToken'] ?? '',
+        refreshToken: json['refreshToken'] ?? '',
+        id: json['id'] ?? 0,
+        username: json['username'] ?? '',
+        email: json['email'] ?? '',
+        firstName: json['firstName'] ?? '',
+        lastName: json['lastName'] ?? '',
+        gender: json['gender'] ?? '',
+        image: json['image'] ?? '',
+      );
 }

@@ -1,5 +1,6 @@
 // // screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:project/screens/signup_screen.dart';
 import '../models/auth_model.dart';
 import '../services/api_service.dart';
 import 'users_screen.dart';
@@ -19,6 +20,13 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _loginMessage;
   bool _isLoginSuccess = false;
   bool _isLoggingIn = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleLogin() async {
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
@@ -44,12 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         _isLoginSuccess = true;
-        _loginMessage = 
+        _loginMessage =
             '✅ Login successful!\nWelcome, ${response.firstName} ${response.lastName}';
         _isLoggingIn = false;
       });
-      
-      // ১ সেকেন্ড দেখানোর পর নেক্সট পেজে যাও
+
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
           Navigator.pushReplacement(
@@ -72,10 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('DummyJSON Login'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('DummyJSON Login'), centerTitle: true),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -137,17 +141,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: _isLoggingIn
                           ? const CircularProgressIndicator(strokeWidth: 2)
                           : const Text(
-                              'LOGIN',
+                              'LOGIN!',
                               style: TextStyle(fontSize: 18),
                             ),
                     ),
                   ),
+                  
+                  // ✅ লগইন মেসেজ (সফল/ব্যর্থ) - শর্তহীন
                   if (_loginMessage != null) ...[
                     const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _isLoginSuccess ? Colors.green[50] : Colors.red[50],
+                        color: _isLoginSuccess
+                            ? Colors.green[50]
+                            : Colors.red[50],
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: _isLoginSuccess ? Colors.green : Colors.red,
@@ -156,10 +164,44 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text(
                         _loginMessage!,
                         style: TextStyle(
-                          color: _isLoginSuccess ? Colors.green[900] : Colors.red[900],
+                          color: _isLoginSuccess
+                              ? Colors.green[900]
+                              : Colors.red[900],
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+
+                  // ✅ সাইনআপ বাটন - শুধু লগইন সফল না হলে দেখাবে
+                  if (!_isLoginSuccess && !_isLoggingIn) ...[
+                    const SizedBox(height: 20),
+                    Divider(color: Colors.grey[300]),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignupScreen(),
+                          ),
+                        );
+                      },
+                      child: RichText(
+                        text: TextSpan(
+                          text: "Don't have an account? ",
+                          style: TextStyle(color: Colors.grey[700]),
+                          children: const [
+                            TextSpan(
+                              text: 'SIGNUP',
+                              style: TextStyle(
+                                color: Colors.deepPurple,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
